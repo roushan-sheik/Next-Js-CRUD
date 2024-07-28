@@ -34,3 +34,39 @@ export const GET = async (request: Request) => {
     );
   }
 };
+// create category
+export const POST = async (request: Request) => {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+    const body: any = await request.json();
+    const { title } = body;
+    if (!userId || !Types.ObjectId.isValid(userId)) {
+      return new NextResponse(
+        JSON.stringify({ message: "Invalid user id or missing user id" }),
+        { status: 400 }
+      );
+    }
+    await connect();
+    const user = await User.findById(userId);
+    if (!user) {
+      return new NextResponse(JSON.stringify({ message: "User not found" }), {
+        status: 404,
+      });
+    }
+    const newCategory = new Category({
+      title,
+      user: new Types.ObjectId(userId),
+    });
+    await newCategory.save();
+    return new NextResponse(
+      JSON.stringify({ message: "Category is created" }),
+      { status: 201 }
+    );
+  } catch (error) {
+    return new NextResponse(
+      JSON.stringify({ message: "Error while creating category" }),
+      { status: 500 }
+    );
+  }
+};

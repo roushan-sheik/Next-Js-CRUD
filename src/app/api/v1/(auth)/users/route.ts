@@ -37,7 +37,6 @@ export const POST = async (request: Request) => {
   }
 };
 // update user name
-
 export const PATCH = async (request: Request) => {
   try {
     const body: any = await request.json();
@@ -55,6 +54,7 @@ export const PATCH = async (request: Request) => {
         status: 400,
       });
     }
+    await connect();
     // now update the user
     const updatedUser = await User.findOneAndUpdate(
       { _id: new ObjectId(userId) },
@@ -79,6 +79,38 @@ export const PATCH = async (request: Request) => {
       JSON.stringify({
         error: "Error while updating the user name",
         message: error.message,
+      }),
+      { status: 500 }
+    );
+  }
+};
+// delete user
+
+export const DELETE = async (request: Request) => {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId: any = searchParams.get("userId");
+    console.log(userId);
+    if (!Types.ObjectId.isValid(userId)) {
+      return new NextResponse(JSON.stringify({ message: "Invalid user Id" }), {
+        status: 400,
+      });
+    }
+    await connect();
+    const deletedUser = await User.findByIdAndDelete(new ObjectId(userId));
+    if (!deletedUser) {
+      return new NextResponse(JSON.stringify({ message: "User not found" }), {
+        status: 404,
+      });
+    }
+    return new NextResponse(
+      JSON.stringify({ message: "User Deleted Successfully" })
+    );
+  } catch (error: any) {
+    return new NextResponse(
+      JSON.stringify({
+        message: "Error while deleting the user",
+        error: error.message,
       }),
       { status: 500 }
     );

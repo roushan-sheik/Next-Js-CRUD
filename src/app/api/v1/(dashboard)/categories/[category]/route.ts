@@ -74,3 +74,59 @@ export const PATCH = async (
     );
   }
 };
+// delete category
+export const DELETE = async (
+  request: Request,
+  { params }: { params: { category: string } }
+) => {
+  const categoryId = params.category;
+  //   search params query string
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get("userId");
+  if (!userId || !Types.ObjectId.isValid(userId)) {
+    return (
+      new NextResponse(
+        JSON.stringify({ message: "Invalid user id or missing user id" })
+      ),
+      { status: 400 }
+    );
+  }
+  if (!categoryId || !Types.ObjectId.isValid(categoryId)) {
+    return (
+      new NextResponse(
+        JSON.stringify({
+          message: "Invalid category id or missing category id",
+        })
+      ),
+      { status: 400 }
+    );
+  }
+  //   connect to the database
+  await connect();
+  const user = await User.findById(userId);
+  if (!user) {
+    return (
+      new NextResponse(JSON.stringify({ message: "User not found" })),
+      { status: 404 }
+    );
+  }
+  const category = await Category.findOne({
+    _id: categoryId,
+    user: userId,
+  });
+  if (!category) {
+    return new NextResponse(JSON.stringify({ message: "Category not found" }), {
+      status: 404,
+    });
+  }
+  // now update the category
+  await Category.findByIdAndDelete(categoryId);
+  return new NextResponse(
+    JSON.stringify({
+      message: "Category successfully Deleted",
+    }),
+    { status: 200 }
+  );
+  try {
+  } catch (error) {}
+};

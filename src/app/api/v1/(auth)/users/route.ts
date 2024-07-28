@@ -20,6 +20,7 @@ export const GET = async () => {
 // create user route
 export const POST = async (request: Request) => {
   try {
+    await connect()
     const body = await request.json();
     const newUser = new User(body);
     await newUser.save();
